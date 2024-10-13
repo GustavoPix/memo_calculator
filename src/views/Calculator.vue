@@ -13,8 +13,10 @@
 					type="text"
 					class="input"
 					v-model="line.text"
+					:ref="'calc_line_' + i"
 					@focus="focus(i)"
 					@blur="blur()"
+					@keyup="inputEvent(i, $event)"
 				>
 				<p class="result">{{ line.result }}</p>
 			</li>
@@ -58,6 +60,76 @@ export default defineComponent({
 		selectInput(index: number, event: Event) {
 			this.isActive = index;
 			(event.target as HTMLElement).querySelector('input')?.focus();
+		},
+		inputEvent(index: number, event: KeyboardEvent) {
+			this.checkChangeLineKey(event);
+			if (index === this.lines.length - 1) {
+				this.checkAddLine();
+			}
+			if (this.lines.length > 1) {
+				this.checkTwoLinesEmpty(index);
+			}
+		},
+		checkChangeLineKey(event: KeyboardEvent) {
+			let acceptedKeys = ['ArrowUp', 'ArrowDown', 'Enter', 'Tab',];
+			if (!acceptedKeys.includes(event.key)) {
+				return;
+			}
+			event.preventDefault();
+			switch (event.key) {
+				case 'ArrowUp':
+					this.changeLine(-1);
+					break;
+				case 'ArrowDown':
+				case 'Enter':
+				case 'Tab':
+					this.changeLine(1);
+					break;
+			}
+		},
+		changeLine(direction: number) {
+			if (direction !== 1 && direction !== -1) {
+				return;
+			}
+			if (this.lines[this.isActive + direction]) {
+				this.isActive += direction;
+				this.$nextTick(() => {
+    				this.setFocusInput(this.isActive);
+				});
+
+			}
+		},
+		checkAddLine() {
+			if (this.lines[this.lines.length - 1].text.trim() !== '') {
+				this.pushLine();
+			}
+		},
+		checkTwoLinesEmpty(index: number) {
+			if (this.lines[index].text.trim() !== '')
+				return;
+			if (index < this.lines.length - 1) {
+				if (this.lines[index + 1].text.trim() === '') {
+					this.lines.splice(index + 1, 1);
+				}
+			}
+			if (index > 0) {
+				if (this.lines[index - 1].text.trim() === '') {
+					this.lines.splice(index - 1, 1);
+				}
+			}
+			if (this.isActive > this.lines.length - 1) {
+				this.setFocusInput(this.lines.length - 1);
+			}
+		},
+		setFocusInput(index: number) {
+			this.isActive = index;
+			this.$nextTick(() => {
+				const key = 'calc_line_' + index;
+				const input = this.$refs[key] as HTMLInputElement[];
+				if (input.length) {
+					input[0].focus();
+				}
+			});
 		}
 	},
 	mounted() {
