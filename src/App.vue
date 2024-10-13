@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import MainMenu from './components/menus/MainMenu.vue';
 import Calculator from './views/Calculator.vue';
+import Setup from './views/Setup.vue';
 </script>
 
 <template>
   <div class="main-app">
     <MainMenu />
-    <Calculator />
+    <Setup />
   </div>
 </template>
 
