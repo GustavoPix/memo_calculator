@@ -1,15 +1,39 @@
-<script setup lang="ts">
-import MainMenu from './components/menus/MainMenu.vue';
-import Calculator from './views/Calculator.vue';
-import Setup from './views/Setup.vue';
-</script>
-
 <template>
   <div class="main-app">
     <MainMenu />
-    <Setup />
+    <Calculator v-show="isCalculatorVisible" />
+    <Setup v-show="isSetupVisible"/>
   </div>
 </template>
+
+<script lang="ts">
+import { defineComponent } from 'vue';
+import MainMenu from './components/menus/MainMenu.vue';
+import Calculator from './views/Calculator.vue';
+import Setup from './views/Setup.vue';
+import { Pages } from '@/enums/Pages';
+
+export default defineComponent({
+  components: {
+    MainMenu,
+    Calculator,
+    Setup
+  },
+  data(){
+    return {
+      page: Pages.CALCULATOR
+    }
+  },
+  computed: {
+    isCalculatorVisible() {
+      return this.page === Pages.CALCULATOR;
+    },
+    isSetupVisible() {
+      return this.page === Pages.SETUP;
+    }
+  }
+});
+</script>
 
 <style lang="scss">
 @import './assets/scss/main.scss';
