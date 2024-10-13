@@ -7,7 +7,7 @@
 			<rect x="8" y="4" width="80" height="8" rx="1" fill="#3FB27F"/>
 		</svg>
 		<h1 class="title">Memo-calc</h1>
-		<p class="text">"Thank you for using Memo-cal, please consider supporting me financially <a href="https://payto.me/gustavopix" target="_blank">here</a></p>
+		<p class="text">Thank you for using Memo-cal, please consider supporting me financially <a href="https://payto.me/gustavopix" target="_blank">here</a></p>
 		<p class="text">For any questions or concerns, please contact me at: <a href="mailto:gustavo1pix@gmail.com">gustavo1pix@gmail.com</a></p>
 		<p class="text">For more information, please visit my website: <a href="https://gustavo1pix.github.io/">gustavo1pix.github.io</a></p>
 		<p class="copy">v1.0.0 - Gustavo Carvalho</p>

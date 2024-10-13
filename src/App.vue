@@ -1,6 +1,9 @@
 <template>
   <div class="main-app">
-    <MainMenu />
+    <MainMenu
+      @changePage="changePage"
+      :page="page"
+    />
     <Calculator v-show="isCalculatorVisible" />
     <Setup v-show="isSetupVisible"/>
   </div>
@@ -22,6 +25,11 @@ export default defineComponent({
   data(){
     return {
       page: Pages.CALCULATOR
+    }
+  },
+  methods: {
+    changePage(page: Pages){
+      this.page = page;
     }
   },
   computed: {
