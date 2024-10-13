@@ -11,7 +11,7 @@ import Calculator from './views/Calculator.vue';
 </template>
 
 <style lang="scss">
-@import './assets/scss/reset.scss';
+@import './assets/scss/main.scss';
 
 body{
   background-color: #1e1f22;

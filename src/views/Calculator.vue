@@ -53,6 +53,7 @@ export default defineComponent({
 
 	&:focus{
 		outline: none;
+		//background: #313338;
 	}
 }
 
