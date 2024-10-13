@@ -1,10 +1,22 @@
 <template>
 	<div class="calculator">
 		<ul>
-			<li class="calculator-line" v-for="(line, i) in 10" :key="'calc_line_' + i">
+			<li
+				class="calculator-line"
+				:class="{'active': isActive == i}"
+				v-for="(line, i) in lines"
+				:key="'calc_line_' + i"
+				@click="selectInput(i, $event)"
+			>
 				<p class="line">{{ i }}.</p>
-				<input type="text" class="input" v-model="textRef">
-				<p class="result">{{ i * 5 }}</p>
+				<input
+					type="text"
+					class="input"
+					v-model="line.text"
+					@focus="focus(i)"
+					@blur="blur()"
+				>
+				<p class="result">{{ line.result }}</p>
 			</li>
 		</ul>
 	</div>
@@ -13,11 +25,43 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 
+interface Line {
+	text: string;
+	result: number;
+}
+
 export default defineComponent({
 	data(){
 		return {
-			textRef: '$a = 5'
+			isActive: 0,
+			lines: [] as Line[]
 		}
+	},
+	computed: {
+		isFocused() {
+			return (index: number) => this.isActive === index;
+		}
+	},
+	methods: {
+		pushLine() {
+			this.lines.push({
+				text: '',
+				result: 0
+			});
+		},
+		focus(index: number) {
+			this.isActive = index;
+		},
+		blur() {
+			this.isActive = -1;
+		},
+		selectInput(index: number, event: Event) {
+			this.isActive = index;
+			(event.target as HTMLElement).querySelector('input')?.focus();
+		}
+	},
+	mounted() {
+		this.pushLine();
 	}
 });
 </script>
@@ -38,6 +82,11 @@ export default defineComponent({
 	justify-content: space-between;
 	padding: 10px;
 	gap: 10px;
+	cursor: text;
+
+	&.active{
+		background: #313338;
+	}
 }
 .line{
 	color: #C3C3C3;
@@ -53,7 +102,6 @@ export default defineComponent({
 
 	&:focus{
 		outline: none;
-		//background: #313338;
 	}
 }
 
