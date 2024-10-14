@@ -8,8 +8,9 @@
 				:key="'calc_line_' + i"
 				@click="selectInput(i, $event)"
 			>
-				<p class="line">{{ i }}.</p>
-				<input
+				<div class="top">
+					<p class="line">{{ i }}.</p>
+					<input
 					type="text"
 					class="input"
 					v-model="line.text"
@@ -17,8 +18,14 @@
 					@focus="focus(i)"
 					@blur="blur()"
 					@keyup="inputEvent(i, $event)"
-				>
+					>
+				</div>
 				<p class="result">{{ line.result }}</p>
+				<div class="debug">
+					<span>result: {{ line.result }}</span>
+					<span>variable: {{ line.variable }}</span>
+					<span>usedVariable: {{ line.usedVariable }}</span>
+				</div>
 			</li>
 		</ul>
 	</div>
@@ -26,10 +33,17 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
+import { evaluate } from 'mathjs';
 
 interface Line {
 	text: string;
 	result: number;
+	variable?: string;
+	usedVariable?: string[];
+}
+
+interface Variables {
+  [key: string]: any;
 }
 
 export default defineComponent({
@@ -69,6 +83,99 @@ export default defineComponent({
 			if (this.lines.length > 1) {
 				this.checkTwoLinesEmpty(index);
 			}
+			this.prepareLineContext(index);
+		},
+		prepareLineContext(index: number) {
+			let line = this.lines[index];
+			if (line.text.trim() === '') {
+				line.result = 0;
+				return;
+			}
+			this.calcSetVariable(line);
+			this.calcSetUsedVariable(line);
+			let variables = this.calcGetUsedVariableValues(line, index);
+			let expression = line.text;
+			if (variables !== undefined) {
+				expression = this.calcSetExpression(line, variables);
+			}
+			try {
+				line.result = evaluate(expression);
+			} catch (error) {
+				line.result = 0;
+			}
+		},
+		calcSetVariable(line: Line) {
+			let text = line.text.trim();
+			if (!text.includes('=')) {
+				line.variable = undefined;
+				return;
+			}
+			text = text.replace(/\s*=\s*/g, '=');
+			let variable = text.split('=')[0];
+			if (variable === '') {
+				line.variable = undefined;
+				return;
+			}
+			if (variable === line.variable) {
+				return;
+			}
+			line.variable = variable;
+			line.text.replace(/\s*=\s*/g, '=');
+		},
+		calcSetUsedVariable(line: Line) {
+			let text = line.text.trim();
+			let maybeVariables:string[] = [];
+			text = text.split('=')[1];
+			if (text === undefined || text === '') {
+				text = line.text.trim();
+			}
+			maybeVariables = text.match(/[a-zA-Z_]+/g) || [];
+			line.usedVariable = maybeVariables;
+		},
+		calcGetUsedVariableValues(line: Line, index: number) {
+			let variables: Variables = {};
+			if (line.usedVariable === undefined) {
+				return;
+			}
+			line.usedVariable.forEach((variable) => {
+				let lineIndex = this.lines.findIndex((line, i) => {
+					return i < index && line.variable === variable;
+				});
+				if (lineIndex === -1) {
+					return;
+				}
+				let value = this.lines[lineIndex].result;
+				variables[variable] = value;
+			});
+			return variables;
+		},
+		calcSetExpression(line: Line, variables: Variables) {
+			let text = line.text.trim();
+			if (line.variable !== undefined) {
+				text = text.split('=')[1];
+			}
+			if (line.usedVariable !== undefined) {
+				line.usedVariable.forEach((variable) => {
+					let value = variables[variable];
+					if (value === undefined) {
+						return;
+					}
+					text = text.replace(new RegExp(variable, 'g'), value.toString());
+				});
+			}
+			return text;
+		},
+		calcLine(index: number) {
+			let text = this.lines[index].text.trim();
+			if (text === '') {
+				this.lines[index].result = 0;
+				return;
+			}
+			try {
+				this.lines[index].result = evaluate(text);
+			} catch (error) {
+				this.lines[index].result = 0;
+			}
 		},
 		checkChangeLineKey(event: KeyboardEvent) {
 			let acceptedKeys = ['ArrowUp', 'ArrowDown', 'Enter', 'Tab',];
@@ -96,7 +203,6 @@ export default defineComponent({
 				this.$nextTick(() => {
     				this.setFocusInput(this.isActive);
 				});
-
 			}
 		},
 		checkAddLine() {
@@ -149,12 +255,18 @@ export default defineComponent({
 	flex: 1;
 }
 .calculator-line{
+
 	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	padding: 10px;
-	gap: 10px;
-	cursor: text;
+	flex-direction: column;
+
+	.top{
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 10px;
+		gap: 10px;
+		cursor: text;
+	}
 
 	&.active{
 		background: #313338;
@@ -181,5 +293,14 @@ export default defineComponent({
 	color: #C3C3C3;
 	font-size: 14px;
 	text-align: right;
+}
+
+.debug{
+	width: 100%;
+	display: flex;
+	justify-content: space-between;
+	font-size: 12px;
+	color: #C3C3C3;
+	gap: 10px;
 }
 </style>
