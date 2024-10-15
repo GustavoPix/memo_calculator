@@ -23,7 +23,7 @@
 				<p class="result">{{ line.result }}</p>
 				<div class="debug">
 					<span>result: {{ line.result }}</span>
-					<span>variable: {{ line.variable }}</span>
+					<span>expression: {{ line.expression }}</span>
 					<span>usedVariable: {{ line.usedVariable }}</span>
 				</div>
 			</li>
@@ -40,6 +40,7 @@ interface Line {
 	result: number;
 	variable?: string;
 	usedVariable?: string[];
+	expression?: string;
 }
 
 interface Variables {
@@ -91,7 +92,7 @@ export default defineComponent({
 				line.result = 0;
 				return;
 			}
-			this.calcSetVariable(line);
+			this.calcSetVariable(line, index);
 			this.calcSetUsedVariable(line);
 			let variables = this.calcGetUsedVariableValues(line, index);
 			let expression = line.text;
@@ -99,29 +100,43 @@ export default defineComponent({
 				expression = this.calcSetExpression(line, variables);
 			}
 			try {
+				line.expression = expression;
 				line.result = evaluate(expression);
 			} catch (error) {
 				line.result = 0;
 			}
 			this.calcUpdateNextLines(index);
 		},
-		calcSetVariable(line: Line) {
+		calcSetVariable(line: Line, index: number) {
 			let text = line.text.trim();
+			let olderVariable = line.variable;
 			if (!text.includes('=')) {
 				line.variable = undefined;
+				if (olderVariable) {
+					console.log('exit A in line', index);
+					this.calcUpdateRemoveNextLines(index, olderVariable);
+				}
 				return;
 			}
-			text = text.replace(/\s*=\s*/g, '=');
 			let variable = text.split('=')[0];
+			variable = variable.replace(/\s/g, '');
 			if (variable === '') {
 				line.variable = undefined;
+				if (olderVariable) {
+					console.log('exit B in line', index);
+					this.calcUpdateRemoveNextLines(index, olderVariable);
+				}
 				return;
 			}
 			if (variable === line.variable) {
 				return;
 			}
 			line.variable = variable;
-			line.text.replace(/\s*=\s*/g, '=');
+			if (olderVariable) {
+				console.log('exit C in line', index);
+				this.calcUpdateRemoveNextLines(index, olderVariable);
+			}
+			line.text = variable + '=' + text.split('=')[1];
 		},
 		calcSetUsedVariable(line: Line) {
 			let text = line.text.trim();
@@ -161,7 +176,7 @@ export default defineComponent({
 					if (value === undefined) {
 						return;
 					}
-					text = text.replace(new RegExp(variable, 'g'), value.toString());
+					text = text.replace(new RegExp(`\\b${variable}\\b`, 'g'), value.toString());
 				});
 			}
 			return text;
@@ -182,6 +197,18 @@ export default defineComponent({
 					this.prepareLineContext(i);
 				}
 			}
+		},
+		calcUpdateRemoveNextLines(index: number, onderVariable: string) {
+			for (let i = index + 1; i < this.lines.length; i++) {
+				let nextLine = this.lines[i];
+				if (nextLine.usedVariable === undefined) {
+					continue;
+				}
+				if (nextLine.usedVariable.includes(onderVariable)) {
+					this.prepareLineContext(i);
+				}
+			}
+			this.calcUpdateNextLines(index);
 		},
 		checkChangeLineKey(event: KeyboardEvent) {
 			let acceptedKeys = ['ArrowUp', 'ArrowDown', 'Enter', 'Tab',];
