@@ -103,6 +103,7 @@ export default defineComponent({
 			} catch (error) {
 				line.result = 0;
 			}
+			this.calcUpdateNextLines(index);
 		},
 		calcSetVariable(line: Line) {
 			let text = line.text.trim();
@@ -165,16 +166,21 @@ export default defineComponent({
 			}
 			return text;
 		},
-		calcLine(index: number) {
-			let text = this.lines[index].text.trim();
-			if (text === '') {
-				this.lines[index].result = 0;
+		calcUpdateNextLines(index: number) {
+			let line = this.lines[index];
+			if (line.variable === undefined) {
 				return;
 			}
-			try {
-				this.lines[index].result = evaluate(text);
-			} catch (error) {
-				this.lines[index].result = 0;
+			let variables: string[] = [];
+			variables.push(line.variable);
+			for (let i = index + 1; i < this.lines.length; i++) {
+				let nextLine = this.lines[i];
+				if (nextLine.usedVariable === undefined) {
+					continue;
+				}
+				if (nextLine.usedVariable.includes(line.variable)) {
+					this.prepareLineContext(i);
+				}
 			}
 		},
 		checkChangeLineKey(event: KeyboardEvent) {
