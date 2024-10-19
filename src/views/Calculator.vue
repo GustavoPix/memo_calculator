@@ -113,7 +113,6 @@ export default defineComponent({
 			if (!text.includes('=')) {
 				line.variable = undefined;
 				if (olderVariable) {
-					console.log('exit A in line', index);
 					this.calcUpdateRemoveNextLines(index, olderVariable);
 				}
 				return;
@@ -123,7 +122,6 @@ export default defineComponent({
 			if (variable === '') {
 				line.variable = undefined;
 				if (olderVariable) {
-					console.log('exit B in line', index);
 					this.calcUpdateRemoveNextLines(index, olderVariable);
 				}
 				return;
@@ -133,7 +131,6 @@ export default defineComponent({
 			}
 			line.variable = variable;
 			if (olderVariable) {
-				console.log('exit C in line', index);
 				this.calcUpdateRemoveNextLines(index, olderVariable);
 			}
 			line.text = variable + '=' + text.split('=')[1];
@@ -154,12 +151,13 @@ export default defineComponent({
 				return;
 			}
 			line.usedVariable.forEach((variable) => {
-				let lineIndex = this.lines.findIndex((line, i) => {
+				let lines = this.lines.filter((line, i) => {
 					return i < index && line.variable === variable;
 				});
-				if (lineIndex === -1) {
+				if (lines.length === 0) {
 					return;
 				}
+				let lineIndex = lines.length - 1;
 				let value = this.lines[lineIndex].result;
 				variables[variable] = value;
 			});
