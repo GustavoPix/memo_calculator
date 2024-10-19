@@ -188,7 +188,7 @@ export default defineComponent({
 					return;
 				}
 				let lineIndex = lines.length - 1;
-				let value = this.lines[lineIndex].result;
+				let value = lines[lineIndex].result;
 				variables[variable] = value;
 			});
 			return variables;
