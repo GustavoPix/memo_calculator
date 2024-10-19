@@ -89,7 +89,9 @@ export default defineComponent({
 			}
 		},
 		inputEventDown(index: number, event: KeyboardEvent) {
-			this.pressedKeys.push(event.key);
+			if (!this.pressedKeys.includes(event.key)) {
+				this.pressedKeys.push(event.key);
+			}
 			if (this.shortkeyEvent(event)) {
 				return;
 			}
@@ -130,8 +132,13 @@ export default defineComponent({
 				expression = this.calcSetExpression(line, variables);
 			}
 			try {
+				const invalidTypes = ['function'];
 				line.expression = expression;
-				line.result = evaluate(expression);
+				let result = evaluate(expression);
+				if (invalidTypes.includes(typeof result)) {
+					throw new Error('Invalid result type');
+				}
+				line.result = result;
 			} catch (error) {
 				line.result = 0;
 			}
