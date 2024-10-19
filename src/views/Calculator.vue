@@ -17,14 +17,10 @@
 					:ref="'calc_line_' + i"
 					@focus="focus(i)"
 					@blur="blur()"
-					@keyup="inputEvent(i, $event)"
+					@keyup="inputEventUp(i, $event)"
+					@keydown="inputEventDown(i, $event)"
 					>
-				</div>
-				<p class="result">{{ line.result }}</p>
-				<div class="debug">
-					<span>result: {{ line.result }}</span>
-					<span>expression: {{ line.expression }}</span>
-					<span>usedVariable: {{ line.usedVariable }}</span>
+					<p class="result">{{ line.result }}</p>
 				</div>
 			</li>
 		</ul>
@@ -33,7 +29,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { evaluate } from 'mathjs';
+import { evaluate, re } from 'mathjs';
 
 interface Line {
 	text: string;
@@ -51,7 +47,8 @@ export default defineComponent({
 	data(){
 		return {
 			isActive: 0,
-			lines: [] as Line[]
+			lines: [] as Line[],
+			pressedKeys: [] as string[]
 		}
 	},
 	computed: {
@@ -76,7 +73,7 @@ export default defineComponent({
 			this.isActive = index;
 			(event.target as HTMLElement).querySelector('input')?.focus();
 		},
-		inputEvent(index: number, event: KeyboardEvent) {
+		inputEventUp(index: number, event: KeyboardEvent) {
 			this.checkChangeLineKey(event);
 			if (index === this.lines.length - 1) {
 				this.checkAddLine();
@@ -85,6 +82,39 @@ export default defineComponent({
 				this.checkTwoLinesEmpty(index);
 			}
 			this.prepareLineContext(index);
+
+			let indexKeyToRemove = this.pressedKeys.indexOf(event.key);
+			if (indexKeyToRemove !== -1) {
+				this.pressedKeys.splice(indexKeyToRemove, 1);
+			}
+		},
+		inputEventDown(index: number, event: KeyboardEvent) {
+			this.pressedKeys.push(event.key);
+			if (this.shortkeyEvent(event)) {
+				return;
+			}
+		},
+		shortkeyEvent(event: KeyboardEvent) {
+
+			let isShortkey:boolean = false;
+			if (event.key === 'c' && this.pressedKeys.includes('Control')) {
+				this.shortkeyCopy();
+				isShortkey = true;
+			}
+			if (event.key === 'Backspace' && this.pressedKeys.includes('Control')) {
+				this.shortkeyClearLine();
+				isShortkey = true;
+			}
+			if (event.key === 'Enter' && this.pressedKeys.includes('Control')) {
+				this.shortcodeCloneResult();
+				isShortkey = true;
+			}
+			if (event.key === 'Escape') {
+				this.shortcodeClearAll();
+				isShortkey = true;
+			}
+
+			return isShortkey;
 		},
 		prepareLineContext(index: number) {
 			let line = this.lines[index];
@@ -219,10 +249,15 @@ export default defineComponent({
 					this.changeLine(-1);
 					break;
 				case 'ArrowDown':
-				case 'Enter':
 				case 'Tab':
 					this.changeLine(1);
 					break;
+			}
+			if (event.key === 'Enter' && !this.pressedKeys.includes('Control')) {
+				this.changeLine(1);
+			}
+			if (event.key === 'Tab' && this.pressedKeys.includes('Shift')) {
+				this.changeLine(-1);
 			}
 		},
 		changeLine(direction: number) {
@@ -267,6 +302,28 @@ export default defineComponent({
 					input[0].focus();
 				}
 			});
+		},
+		shortkeyCopy() {
+			let line = this.lines[this.isActive];
+			navigator.clipboard.writeText(line.result.toString());
+			console.log('Copied to clipboard: ' + line.result);
+		},
+		shortkeyClearLine() {
+			let line = this.lines[this.isActive];
+			line.text = '';
+			this.prepareLineContext(this.isActive);
+		},
+		shortcodeCloneResult() {
+			let line = this.lines[this.isActive];
+			let result = line.result;
+			this.lines[this.lines.length - 1].text = result.toString();
+			this.prepareLineContext(this.lines.length - 1);
+			this.pushLine();
+		},
+		shortcodeClearAll() {
+			this.lines = [];
+			this.pushLine();
+			this.setFocusInput(0);
 		}
 	},
 	mounted() {
