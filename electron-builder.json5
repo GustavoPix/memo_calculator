@@ -1,9 +1,9 @@
 // @see https://www.electron.build/configuration/configuration
 {
   "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
-  "appId": "YourAppID",
+  "appId": "x",
   "asar": true,
-  "productName": "YourAppName",
+  "productName": "Memo-calc",
   "directories": {
     "output": "release/${version}"
   },
@@ -24,8 +24,9 @@
         "arch": [
           "x64"
         ]
-      }
+      },
     ],
+    "icon": "public/favicon.ico",
     "artifactName": "${productName}-Windows-${version}-Setup.${ext}"
   },
   "nsis": {

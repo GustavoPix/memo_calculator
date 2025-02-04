@@ -44,8 +44,9 @@ const indexHtml = path.join(RENDERER_DIST, 'index.html')
 
 async function createWindow() {
   win = new BrowserWindow({
-    title: 'Main window',
+    title: 'Memo-calc',
     icon: path.join(process.env.VITE_PUBLIC, 'favicon.ico'),
+    autoHideMenuBar: true,
     webPreferences: {
       preload,
       // Warning: Enable nodeIntegration and disable contextIsolation is not secure in production
@@ -75,6 +76,8 @@ async function createWindow() {
     if (url.startsWith('https:')) shell.openExternal(url)
     return { action: 'deny' }
   })
+
+  win.removeMenu()
   // win.webContents.on('will-navigate', (event, url) => { }) #344
 }
 

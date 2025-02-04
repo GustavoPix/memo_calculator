@@ -15,6 +15,7 @@
 					class="input"
 					v-model="line.text"
 					:ref="'calc_line_' + i"
+					:i="i"
 					@focus="focus(i)"
 					@blur="blur()"
 					@keyup="inputEventUp(i, $event)"

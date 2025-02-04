@@ -25,7 +25,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import About from './setup/about.vue';
+import About from './setup/About.vue';
 import Shortcuts from './setup/shortcuts.vue';
 import HowToUse from './setup/howToUse.vue';
 
