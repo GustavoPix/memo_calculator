@@ -39,6 +39,7 @@
     "target": [
       "AppImage"
     ],
+    "icon": "public/favicon.png",
     "artifactName": "${productName}-Linux-${version}.${ext}"
   }
 }
