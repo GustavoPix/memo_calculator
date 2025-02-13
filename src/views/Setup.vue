@@ -70,6 +70,8 @@ export default defineComponent({
 		color: #FFFFFF;
 		font-size: 14px;
 
+		border-bottom: 1px solid #8F8F8F;
+
 		&_item{
 			cursor: pointer;
 			transition: 0.3s ease;
